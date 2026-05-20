@@ -1,14 +1,9 @@
 from typing import List
 from pydantic import BaseModel, Field
 from langchain.tools import tool
-from dataset import BiTextDataset
+from src.dataset import BiTextDataset
 
 dataset = BiTextDataset("data/bitext.csv")
-
-
-# ---------------------------------------------------
-# LIST CATEGORIES
-# ---------------------------------------------------
 
 class ListCategoriesInput(BaseModel):
     """No input required."""
@@ -26,10 +21,6 @@ def list_categories() -> List[str]:
     return dataset.categories()
 
 
-# ---------------------------------------------------
-# COUNT INTENT
-# ---------------------------------------------------
-
 class CountIntentInput(BaseModel):
     intent: str = Field(
         description="Intent name to count."
@@ -43,10 +34,6 @@ def count_intent(intent: str) -> int:
     """
     return dataset.count_by_intent(intent)
 
-
-# ---------------------------------------------------
-# EXAMPLES
-# ---------------------------------------------------
 
 class ExamplesInput(BaseModel):
     intent: str = Field(description="Intent name")
@@ -64,10 +51,6 @@ def get_examples(intent: str, limit: int = 3):
     return dataset.examples_by_intent(intent, limit)
 
 
-# ---------------------------------------------------
-# DISTRIBUTION
-# ---------------------------------------------------
-
 class DistributionInput(BaseModel):
     category: str = Field(
         description="Category name"
@@ -80,11 +63,6 @@ def get_intent_distribution(category: str):
     Return intent distribution inside a category.
     """
     return dataset.intent_distribution(category)
-
-
-# ---------------------------------------------------
-# CATEGORY DOCUMENTS
-# ---------------------------------------------------
 
 class CategoryDocsInput(BaseModel):
     category: str = Field(
@@ -99,11 +77,6 @@ def get_category_documents(category: str):
     Used for summarization tasks.
     """
     return dataset.summarize_category(category)
-
-
-# ---------------------------------------------------
-# RESPONSES
-# ---------------------------------------------------
 
 class ResponsePatternInput(BaseModel):
     intent: str = Field(
