@@ -1,0 +1,9 @@
+ipython
+langgraph
+langchain
+langchain-openai
+openai
+pandas
+pydantic
+rich
+tqdm
