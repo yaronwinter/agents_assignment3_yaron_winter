@@ -3,9 +3,18 @@ from typing import Literal
 from pydantic import BaseModel
 from langchain_openai import ChatOpenAI
 
+STRUCTURED = "structured"
+UNSTRUCTURED = "unstructured"
+OUT_OF_SCOPE = "out_of_scope"
+
+"""
+The router module, which routes the given question to the appropriate agent based on the question content.
+I chose Nemotron-3-Nano-Omni for this task, as it is designed for instructions and reasoning tasks, 
+and it is relatively not too expensive.
+"""
 llm = ChatOpenAI(base_url="https://api.tokenfactory.nebius.com/v1/",
                  api_key=os.environ["NEBIUS_API_KEY"],
-                 model="Qwen/Qwen3-235B-A22B-Instruct-2507")
+                 model="nvidia/Nemotron-3-Nano-Omni")
 
 
 class RouteDecision(BaseModel):
@@ -30,11 +39,13 @@ structured:
 - distributions
 - examples
 - categories
+- intents
 
 unstructured:
 - summarization
 - behavioral analysis
 - qualitative insights
+- pattern analysis
 
 out_of_scope:
 - unrelated to dataset

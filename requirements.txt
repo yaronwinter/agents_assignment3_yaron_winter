@@ -1,9 +1,12 @@
 ipython
 langgraph
+langgraph-api
+langgraph-checkpoint
+langchain_core
+langgraph-cli
 langchain
 langchain-openai
 openai
 pandas
 pydantic
 rich
-tqdm
