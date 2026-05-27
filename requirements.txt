@@ -2,6 +2,7 @@ ipython
 langgraph
 langgraph-api
 langgraph-checkpoint
+langgraph-checkpoint-sqlite
 langchain_core
 langgraph-cli[inmem]
 python-dotenv

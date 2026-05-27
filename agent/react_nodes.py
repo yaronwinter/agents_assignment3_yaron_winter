@@ -65,38 +65,34 @@ unstructured_react_agent = create_react_agent(
 
 CLI_MODE = os.environ.get("CLI_MODE") == "1"
 
-def structured_react_node(state: AgentState) -> Dict[str, str]:
+def _run_react(agent, state: AgentState, label: str) -> Dict[str, object]:
+    """Invoke a ReAct sub-agent with accumulated history and return only the delta."""
+    prior = state.get("messages") or []
+    user_msg = HumanMessage(content=state["question"])
+
+    result = agent.invoke({"messages": list(prior) + [user_msg]})
+    all_messages = result["messages"]
+
+    # The sub-agent echoes the input messages and appends its own. We return
+    # only what's new (the user turn + new agent/tool messages) so the
+    # add_messages reducer appends instead of duplicating history.
+    new_messages = [user_msg] + list(all_messages[len(prior) + 1:])
+
+    if CLI_MODE:
+        display.display_reasoning(label, all_messages)
+
+    return {
+        "answer": all_messages[-1].content,
+        "messages": new_messages,
+        "iterations": state["iterations"] + 1
+    }
+
+
+def structured_react_node(state: AgentState) -> Dict[str, object]:
     """The structured React node, which invokes the ReAct agent to process the question."""
-    result = structured_react_agent.invoke({
-        "messages": [
-            HumanMessage(content=state["question"])
-        ]
-    })
+    return _run_react(structured_react_agent, state, "Structured")
 
-    messages = result["messages"]
-    if CLI_MODE:
-        display.display_reasoning("Structured", messages)
 
-    return {
-        "answer": messages[-1].content,
-        "messages": messages,
-        "iterations": state["iterations"] + 1
-    }
-
-def unstructured_react_node(state: AgentState) -> Dict[str, str]:
+def unstructured_react_node(state: AgentState) -> Dict[str, object]:
     """The unstructured React node, which invokes the ReAct agent to process the question."""
-    result = unstructured_react_agent.invoke({
-        "messages": [
-            HumanMessage(content=state["question"])
-        ]
-    })
-
-    messages = result["messages"]
-    if CLI_MODE:
-        display.display_reasoning("Unstructured", messages)
-
-    return {
-        "answer": messages[-1].content,
-        "messages": messages,
-        "iterations": state["iterations"] + 1
-    }
+    return _run_react(unstructured_react_agent, state, "Unstructured")
