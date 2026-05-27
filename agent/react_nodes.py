@@ -63,6 +63,8 @@ unstructured_react_agent = create_react_agent(
     prompt=UNSTRUCTURED_SYSTEM_PROMPT
 )
 
+CLI_MODE = os.environ.get("CLI_MODE") == "1"
+
 def structured_react_node(state: AgentState) -> Dict[str, str]:
     """The structured React node, which invokes the ReAct agent to process the question."""
     result = structured_react_agent.invoke({
@@ -71,12 +73,13 @@ def structured_react_node(state: AgentState) -> Dict[str, str]:
         ]
     })
 
-    # Display the reasoning steps taken by the agent
     messages = result["messages"]
-    display_reasoning(messages)
+    if CLI_MODE:
+        display_reasoning(messages)
 
     return {
         "answer": messages[-1].content,
+        "messages": messages,
         "iterations": state["iterations"] + 1
     }
 
@@ -88,12 +91,13 @@ def unstructured_react_node(state: AgentState) -> Dict[str, str]:
         ]
     })
 
-    # Display the reasoning steps taken by the agent
     messages = result["messages"]
-    display_reasoning(messages)
+    if CLI_MODE:
+        display_reasoning(messages)
 
     return {
         "answer": messages[-1].content,
+        "messages": messages,
         "iterations": state["iterations"] + 1
     }
 

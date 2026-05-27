@@ -1,9 +1,11 @@
+from pathlib import Path
 from typing import List, Dict
 from pydantic import BaseModel, Field
 from langchain.tools import tool
 from agent.dataset import BiTextDataset
 
-dataset = BiTextDataset("data/bitext.csv")
+DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "bitext.csv"
+dataset = BiTextDataset(str(DATA_PATH))
 
 class CategoryDocsInput(BaseModel):
     category: str = Field(

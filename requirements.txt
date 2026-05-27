@@ -3,7 +3,8 @@ langgraph
 langgraph-api
 langgraph-checkpoint
 langchain_core
-langgraph-cli
+langgraph-cli[inmem]
+python-dotenv
 langchain
 langchain-openai
 openai

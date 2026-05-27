@@ -1,3 +1,6 @@
+import os
+os.environ["CLI_MODE"] = "1"
+
 from rich.console import Console
 from rich.panel import Panel
 from agent.graph import app
