@@ -1,5 +1,6 @@
 import argparse
 import os
+import uuid
 os.environ["CLI_MODE"] = "1"
 
 from rich.console import Console
@@ -18,11 +19,7 @@ def main():
     the prior conversation.
     """
     parser = argparse.ArgumentParser(description="BiText ReAct Agent")
-    parser.add_argument(
-        "--session",
-        default="default",
-        help="Session id; same value across runs restores the same conversation.",
-    )
+    parser.add_argument("--session", type=str, default=uuid.uuid4().hex[:12])
     args = parser.parse_args()
 
     config = {"configurable": {"thread_id": args.session}}

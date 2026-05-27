@@ -73,16 +73,18 @@ def _run_react(agent, state: AgentState, label: str) -> Dict[str, object]:
     result = agent.invoke({"messages": list(prior) + [user_msg]})
     all_messages = result["messages"]
 
-    # The sub-agent echoes the input messages and appends its own. We return
-    # only what's new (the user turn + new agent/tool messages) so the
-    # add_messages reducer appends instead of duplicating history.
-    new_messages = [user_msg] + list(all_messages[len(prior) + 1:])
+    # Persist only the conversation thread (user turn + final answer). Tool
+    # calls and intermediate reasoning are scratch work — keeping them in
+    # state would inflate every subsequent sub-agent prompt for no gain on
+    # follow-up resolution. CLI display still shows the full chain below.
+    final_ai = all_messages[-1]
+    new_messages = [user_msg, final_ai]
 
     if CLI_MODE:
         display.display_reasoning(label, all_messages)
 
     return {
-        "answer": all_messages[-1].content,
+        "answer": final_ai.content,
         "messages": new_messages,
         "iterations": state["iterations"] + 1
     }
