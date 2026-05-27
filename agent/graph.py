@@ -60,6 +60,23 @@ def out_of_scope_node(state: AgentState) -> Dict[str, str]:
         )
     }
 
+
+def personal_node(state: AgentState) -> Dict[str, str]:
+    """Answer questions about the user themselves directly from the loaded profile.
+
+    No tool calls, no LLM call — we just return the profile contents. This keeps
+    "what do you remember about me?" deterministic and cheap.
+    """
+    profile = (state.get("profile") or "").strip()
+    if profile:
+        answer = f"Here's what I remember about you:\n\n{profile}"
+    else:
+        answer = (
+            "I don't have a profile for you yet — tell me about yourself, "
+            "or just keep asking dataset questions and I'll learn over time."
+        )
+    return {"answer": answer}
+
 def should_continue(state: AgentState) -> str:
     """A function that determines whether the agent should continue iterating or stop."""
     if state["iterations"] >= MAX_ITERATIONS:
@@ -79,6 +96,7 @@ graph.add_node("router", route_question)
 graph.add_node("structured_react", structured_react_node)
 graph.add_node("unstructured_react", unstructured_react_node)
 graph.add_node("oos", out_of_scope_node)
+graph.add_node("personal", personal_node)
 
 graph.set_entry_point("router")
 
@@ -88,7 +106,8 @@ graph.add_conditional_edges(
     {
         router.STRUCTURED: "structured_react",
         router.UNSTRUCTURED: "unstructured_react",
-        router.OUT_OF_SCOPE: "oos"
+        router.OUT_OF_SCOPE: "oos",
+        router.PERSONAL: "personal",
     }
 )
 
@@ -112,6 +131,7 @@ graph.add_conditional_edges(
 
 
 graph.add_edge("oos", END)
+graph.add_edge("personal", END)
 
 
 # In CLI mode we own persistence, so attach a SQLite checkpointer scoped per

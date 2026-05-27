@@ -6,10 +6,11 @@ from langchain_openai import ChatOpenAI
 STRUCTURED = "structured"
 UNSTRUCTURED = "unstructured"
 OUT_OF_SCOPE = "out_of_scope"
+PERSONAL = "personal"
 
 """
 The router module, which routes the given question to the appropriate agent based on the question content.
-I chose Nemotron-3-Nano-Omni for this task, as it is designed for instructions and reasoning tasks, 
+I chose Nemotron-3-Nano-Omni for this task, as it is designed for instructions and reasoning tasks,
 and it is relatively not too expensive.
 """
 llm = ChatOpenAI(base_url="https://api.tokenfactory.nebius.com/v1/",
@@ -21,7 +22,8 @@ class RouteDecision(BaseModel):
     route: Literal[
         "structured",
         "unstructured",
-        "out_of_scope"
+        "out_of_scope",
+        "personal",
     ]
 
 
@@ -46,6 +48,14 @@ unstructured:
 - behavioral analysis
 - qualitative insights
 - pattern analysis
+
+personal:
+- questions about what the assistant knows or remembers about the USER
+  themselves (not the dataset)
+- examples: "what do you remember about me?", "who am I?",
+  "what do you know about me?", "what are my preferences?"
+- statements where the user is telling the assistant facts about themselves
+  (name, role, preferences) with no dataset question attached
 
 out_of_scope:
 - unrelated to dataset

@@ -7,3 +7,4 @@ class AgentState(TypedDict):
     messages: Annotated[List, add_messages]
     iterations: int
     answer: str
+    profile: str

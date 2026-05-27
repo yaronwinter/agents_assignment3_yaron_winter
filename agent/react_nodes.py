@@ -2,7 +2,7 @@ import os
 from typing import Dict
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent 
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from agent.state import AgentState
 from agent.prompts import STRUCTURED_SYSTEM_PROMPT, UNSTRUCTURED_SYSTEM_PROMPT
@@ -70,7 +70,17 @@ def _run_react(agent, state: AgentState, label: str) -> Dict[str, object]:
     prior = state.get("messages") or []
     user_msg = HumanMessage(content=state["question"])
 
-    result = agent.invoke({"messages": list(prior) + [user_msg]})
+    # Surface the per-user profile to the sub-agent as an extra system
+    # message. The agent's built-in system prompt (dataset instructions)
+    # remains in place; this is appended context, not a replacement.
+    profile = (state.get("profile") or "").strip()
+    profile_msgs = []
+    if profile:
+        profile_msgs = [SystemMessage(
+            content=f"What you know about this user (use only if relevant):\n{profile}"
+        )]
+
+    result = agent.invoke({"messages": profile_msgs + list(prior) + [user_msg]})
     all_messages = result["messages"]
 
     # Persist only the conversation thread (user turn + final answer). Tool
