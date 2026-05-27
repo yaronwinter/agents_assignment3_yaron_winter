@@ -7,7 +7,6 @@ from rich.console import Console
 from rich.panel import Panel
 from agent.graph import app
 from agent import profile as profile_store
-from agent import router
 
 console = Console()
 
@@ -50,9 +49,11 @@ def main():
         if question.lower() in ["exit", "quit"]:
             break
 
-        # Load the profile fresh each turn so an edit on disk (manual or by
-        # the previous turn's update) is picked up immediately.
-        profile = profile_store.load_profile(args.user)
+        # Load + render the profile fresh each turn so any update from the
+        # previous turn (or a manual edit on disk) is picked up immediately.
+        profile_text = profile_store.render_profile(
+            profile_store.load_profile(args.user)
+        )
 
         # Invoke the agent. The checkpointer rehydrates prior state for this
         # thread_id; iterations is reset per turn so MAX_ITERATIONS guards a
@@ -61,7 +62,7 @@ def main():
             {
                 "question": question,
                 "iterations": 0,
-                "profile": profile,
+                "profile": profile_text,
             },
             config=config,
         )
@@ -74,12 +75,9 @@ def main():
             )
         )
 
-        # Update the profile from the latest exchange — but skip the routes
-        # that don't carry new user info: personal (user is asking, not telling)
-        # and out_of_scope (nothing dataset/user-relevant to extract).
-        route = result.get("route")
-        if route not in (router.PERSONAL, router.OUT_OF_SCOPE):
-            profile_store.update_profile(args.user, question, result["answer"])
+        # Always update — extraction returns empty for OOS / pure-meta turns,
+        # making the dict update a no-op. No route-based special-casing.
+        profile_store.update_profile(args.user, question, result["answer"], result.get("route"))
 
 
 if __name__ == "__main__":
