@@ -1,13 +1,12 @@
 import os
 from typing import Dict
 from langchain_openai import ChatOpenAI
-from langgraph.prebuilt import create_react_agent
-from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
+from langgraph.prebuilt import create_react_agent 
+from langchain_core.messages import HumanMessage
 
 from agent.state import AgentState
-from agent.router import router_llm, ROUTER_PROMPT
 from agent.prompts import STRUCTURED_SYSTEM_PROMPT, UNSTRUCTURED_SYSTEM_PROMPT
-from agent import struct_tools, unstruct_tools
+from agent import struct_tools, unstruct_tools, display
 
 """
 The ReAct LLM.
@@ -31,12 +30,13 @@ structured_tools = [
     struct_tools.get_category_distribution,
     struct_tools.get_examples_by_intent,
     struct_tools.get_examples_by_category,
+    struct_tools.get_distribution_of_intents_for_category,
+    struct_tools.get_distribution_of_categories_for_intent,
 ]
 
 unstructured_tools = [
     unstruct_tools.get_docs_by_category,
     unstruct_tools.get_docs_by_intent,
-    unstruct_tools.get_responses_by_intent,
     unstruct_tools.get_instructions_by_intent,
     unstruct_tools.get_responses_by_intent,
     unstruct_tools.get_responses_by_category,
@@ -75,7 +75,7 @@ def structured_react_node(state: AgentState) -> Dict[str, str]:
 
     messages = result["messages"]
     if CLI_MODE:
-        display_reasoning(messages)
+        display.display_reasoning("Structured", messages)
 
     return {
         "answer": messages[-1].content,
@@ -93,24 +93,10 @@ def unstructured_react_node(state: AgentState) -> Dict[str, str]:
 
     messages = result["messages"]
     if CLI_MODE:
-        display_reasoning(messages)
+        display.display_reasoning("Unstructured", messages)
 
     return {
         "answer": messages[-1].content,
         "messages": messages,
         "iterations": state["iterations"] + 1
     }
-
-def display_reasoning(messages):
-    """Helper function to display the reasoning steps taken by the agent."""
-    for m in messages:
-        if isinstance(m, AIMessage):
-            if m.tool_calls:
-                for tc in m.tool_calls:
-                    print(f"\nThought: Need tool {tc['name']}")
-                    print(f"Action: {tc['name']}")
-                    print(f"Input: {tc['args']}")
-            elif m.content:
-                print(f"\nFinal Answer: {m.content}")
-        elif isinstance(m, ToolMessage):
-            print(f"Observation: {m.content}")

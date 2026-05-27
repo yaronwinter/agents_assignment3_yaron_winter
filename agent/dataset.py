@@ -1,10 +1,15 @@
 import pandas as pd
+import numpy as np
 from typing import List, Dict
 
 CATEGORY = "category"
 INTENT = "intent"
 INSTRUCTION = "instruction"
 RESPONSE = "response"
+
+MAX_DOCS_TO_SUMMARIZE = 45 # To avoid overloading the LLM with too much information,
+                           # which may exceed its context window, harm performance, increase costs
+                           # and exceeds the quota of the used model.
 
 class BiTextDataset:
     """
@@ -18,11 +23,11 @@ class BiTextDataset:
     def __init__(self, path: str):
         self.df = pd.read_csv(path)
 
-    def get_categories(self) -> List[str]:
+    def get_all_categories(self) -> List[str]:
         """Returns a list of unique categories in the dataset."""
         return sorted(self.df[CATEGORY].unique().tolist())
 
-    def get_intents(self) -> List[str]:
+    def get_all_intents(self) -> List[str]:
         """Returns a list of unique intents in the dataset."""
         return sorted(self.df[INTENT].unique().tolist())
 
@@ -54,7 +59,7 @@ class BiTextDataset:
 
         return rows.to_dict(orient="records")
 
-    def intent_distribution(self, category: str) -> Dict[str, int]:
+    def get_distribution_of_intents_for_category(self, category: str) -> Dict[str, int]:
         """Gets the distribution of intents for a given category."""
         subset = self.df[
             self.df[CATEGORY].str.lower() == category.lower()
@@ -66,10 +71,30 @@ class BiTextDataset:
             .to_dict()
         )
     
-    def category_distribution(self) -> Dict[str, int]:
+    def get_distribution_of_categories_for_intent(self, intent: str) -> Dict[str, int]:
+        """Gets the distribution of categories for a given intent."""
+        subset = self.df[
+            self.df[INTENT].str.lower() == intent.lower()
+        ]
+
+        return (
+            subset[CATEGORY]
+            .value_counts()
+            .to_dict()
+        )
+    
+    def get_category_distribution(self) -> Dict[str, int]:
         """Gets the distribution of categories in the dataset."""
         return (
             self.df[CATEGORY]
+            .value_counts()
+            .to_dict()
+        )
+    
+    def get_intent_distribution(self) -> Dict[str, int]:
+        """Gets the distribution of intents in the dataset."""
+        return (
+            self.df[INTENT]
             .value_counts()
             .to_dict()
         )
@@ -80,6 +105,8 @@ class BiTextDataset:
             self.df[CATEGORY].str.lower() == category.lower()
         ]
 
+        subset = reduce_docs_number(subset)
+
         return subset.to_dict(orient="records")
     
     def summarize_by_intent(self, intent: str) -> List[Dict[str, str]]:
@@ -87,6 +114,8 @@ class BiTextDataset:
         subset = self.df[
             self.df[INTENT].str.lower() == intent.lower()
         ]
+
+        subset = reduce_docs_number(subset)
 
         return subset.to_dict(orient="records")
 
@@ -96,6 +125,8 @@ class BiTextDataset:
             self.df[CATEGORY].str.lower() == category.lower()
         ]
 
+        subset = reduce_docs_number(subset)
+
         return subset[INSTRUCTION].tolist()
     
     def get_responses_by_category(self, category: str) -> List[str]:
@@ -104,6 +135,7 @@ class BiTextDataset:
             self.df[CATEGORY].str.lower() == category.lower()
         ]
 
+        subset = reduce_docs_number(subset)
         return subset[RESPONSE].tolist()
     
     def get_responses_by_intent(self, intent: str) -> List[str]:
@@ -112,6 +144,7 @@ class BiTextDataset:
             self.df[INTENT].str.lower() == intent.lower()
         ]
 
+        subset = reduce_docs_number(subset)
         return subset[RESPONSE].tolist()
     
     def get_instructions_by_intent(self, intent: str) -> List[str]:
@@ -120,4 +153,16 @@ class BiTextDataset:
             self.df[INTENT].str.lower() == intent.lower()
         ]
 
+        subset = reduce_docs_number(subset)
         return subset[INSTRUCTION].tolist() 
+
+def reduce_docs_number(df: pd.DataFrame) -> pd.DataFrame:
+    """Reduces the number of documents in a dataframe to avoid overloading the LLM."""
+    if len(df) == 0:
+        return df
+    
+    threshold = MAX_DOCS_TO_SUMMARIZE / len(df)
+    rands = np.random.rand(len(df)).tolist()
+    subset = df[[x < threshold for x in rands]].reset_index(drop=True)
+
+    return subset

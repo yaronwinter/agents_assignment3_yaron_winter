@@ -19,7 +19,7 @@ def list_categories() -> List[str]:
     Return all dataset categories.
     Useful when user asks about available categories.
     """
-    return dataset.get_categories()
+    return dataset.get_all_categories()
 
 
 class ListIntentsInput(BaseModel):
@@ -34,7 +34,7 @@ def list_intents() -> List[str]:
     Return all dataset intents.
     Useful when user asks about available intents.
     """
-    return dataset.get_intents()
+    return dataset.get_all_intents()
 
 
 class CountIntentInput(BaseModel):
@@ -94,28 +94,44 @@ def get_examples_by_category(category: str, limit: int = 3) -> List[Dict[str, st
     return dataset.get_examples_by_category(category, limit)
 
 class CategoryDistributionInput(BaseModel):
-    category: str = Field(
-        description="Category name"
-    )
+    """ no input required """
 
 
 @tool(args_schema=CategoryDistributionInput)
-def get_category_distribution(category: str) -> Dict[str, int]:
+def get_category_distribution() -> Dict[str, int]:
     """
     Return intent distribution inside a category.
     """
-    return dataset.get_category_distribution(category)
+    return dataset.get_category_distribution()
 
 
 class IntentDistributionInput(BaseModel):
-    intent: str = Field(
-        description="Intent name"
-    )
+    """ no input required """
 
 
 @tool(args_schema=IntentDistributionInput)
-def get_intent_distribution(intent: str) -> Dict[str, int]:
+def get_intent_distribution() -> Dict[str, int]:
     """
     Return category distribution for a specific intent.
     """
-    return dataset.get_intent_distribution(intent)
+    return dataset.get_intent_distribution()
+
+class IntentDistributionForCategoryInput(BaseModel):
+    category: str = Field(description="Category name")
+
+@tool(args_schema=IntentDistributionForCategoryInput)
+def get_distribution_of_intents_for_category(category: str) -> Dict[str, int]:
+    """
+    Return intent distribution inside a category.
+    """
+    return dataset.get_distribution_of_intents_for_category(category)
+
+class CategoryDistributionForIntentInput(BaseModel):
+    intent: str = Field(description="Intent name")
+
+@tool(args_schema=CategoryDistributionForIntentInput)
+def get_distribution_of_categories_for_intent(intent: str) -> Dict[str, int]:
+    """
+    Return category distribution for a specific intent.
+    """
+    return dataset.get_distribution_of_categories_for_intent(intent)

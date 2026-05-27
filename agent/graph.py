@@ -1,11 +1,14 @@
+import os
 from typing import Dict
 from langgraph.graph import StateGraph, END
 
 from agent.state import AgentState
-from agent import router
 from agent.react_nodes import structured_react_node, unstructured_react_node
+from agent import router
 
 MAX_ITERATIONS = 10
+
+CLI_MODE = os.environ.get("CLI_MODE") == "1"
 
 def route_question(state: AgentState) -> Dict[str, str]:
     """The router node, which routes the question to the appropriate agent based on the question content."""
@@ -13,6 +16,9 @@ def route_question(state: AgentState) -> Dict[str, str]:
         ("system", router.ROUTER_PROMPT),
         ("human", state["question"])
     ])
+
+    if CLI_MODE:
+        print(f"Router: (result: {result.route})")
 
     return {
         "route": result.route
