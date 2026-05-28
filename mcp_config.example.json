@@ -1,10 +1,12 @@
 {
   "//": "Drop this into an MCP host's config to register the BiText server.",
   "//comment": "For Claude Desktop, merge the 'mcpServers' block into ~/.config/Claude/claude_desktop_config.json (Linux) or ~/Library/Application Support/Claude/claude_desktop_config.json (macOS), then restart the app.",
+  "//paths": "Paths below are relative to 'cwd' (the repo root). Activate the conda env (or put its python on PATH) so 'python' resolves to Python >= 3.10 with the mcp package. Many hosts (incl. Claude Desktop) need an ABSOLUTE 'cwd' and may not honor relative paths at all -- if it fails, replace 'cwd' and the args with absolute paths.",
   "mcpServers": {
     "bitext-dataset": {
-      "command": "/home/yaron/miniconda3/envs/agentic_task/bin/python",
-      "args": ["/home/yaron/WorkEnv/Nebius/agents_assignment3_yaron_winter/mcp_server.py"]
+      "command": "python",
+      "args": ["mcp_server.py"],
+      "cwd": "."
     }
   }
 }

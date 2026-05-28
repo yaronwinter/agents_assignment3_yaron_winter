@@ -36,11 +36,24 @@ mcp dev mcp_server.py
 
 ### Connect a client
 
-A minimal end-to-end client lives in `mcp_client.py`. It launches the server over
-stdio, runs the initialize handshake, lists the tools, and calls a few of them:
+`mcp_client.py` launches the server over stdio, runs the initialize handshake,
+lists the tools, and then drops into an interactive REPL so you can send your own
+requests:
 
 ```bash
-/home/yaron/miniconda3/envs/agentic_task/bin/python mcp_client.py
+/home/yaron/miniconda3/envs/agentic_task/bin/python mcp_client.py          # interactive REPL
+/home/yaron/miniconda3/envs/agentic_task/bin/python mcp_client.py --demo   # canned calls, then exit
+```
+
+REPL commands:
+
+```text
+mcp> list                                   # re-list available tools
+mcp> help count_category                    # show a tool's input schema
+mcp> list_categories                        # call a no-arg tool
+mcp> count_category {"category": "REFUND"}  # call with JSON arguments
+mcp> count_category category=REFUND         # ...or key=value shorthand
+mcp> exit
 ```
 
 To register the server with an MCP host (e.g. Claude Desktop), merge the

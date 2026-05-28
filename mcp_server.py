@@ -20,7 +20,7 @@ keeping the logic deterministic and Python-side rather than delegating to an LLM
 """
 
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from mcp.server.fastmcp import FastMCP
 
@@ -59,8 +59,12 @@ def count_category(category: str) -> int:
 
 
 @mcp.tool()
-def get_examples_by_intent(intent: str, limit: int = 3) -> List[Dict[str, str]]:
-    """Return up to ``limit`` example rows (instruction/response pairs) for an intent."""
+def get_examples_by_intent(intent: str, limit: int = 3) -> List[Dict[str, Any]]:
+    """Return up to ``limit`` example rows (instruction/response pairs) for an intent.
+
+    Row dicts may contain non-string values (e.g. the dataset's integer index
+    column), so values are typed as ``Any`` to keep FastMCP output validation honest.
+    """
     return dataset.get_examples_by_intent(intent, limit)
 
 
