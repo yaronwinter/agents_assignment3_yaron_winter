@@ -122,12 +122,13 @@ def personal_node(state: AgentState) -> Dict[str, object]:
         return {
             "answer": (
                 "I don't have a profile for you yet — tell me about yourself, "
-
+                "or just keep asking dataset questions and I'll learn over time."
             ),
             "messages": "",
             "iterations": state["iterations"] + 1
         }
-    user_msg = HumanMessage(content=f"{state["question"]}\n\n{profile}")
+    content = f"{state['question']}\n\n{profile}"
+    user_msg = HumanMessage(content=content)
     result = personal_react_agent.invoke({"messages": [user_msg]})
     messages = result["messages"]
     if CLI_MODE:
