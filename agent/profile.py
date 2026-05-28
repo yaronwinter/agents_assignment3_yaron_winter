@@ -42,10 +42,8 @@ def _path(user_id: str) -> str:
     safe = re.sub(r"[^A-Za-z0-9._-]", "_", user_id) or "default_user"
     return os.path.join(PROFILE_DIR, f"{safe}.md")
 
-
 def _empty() -> Dict:
     return {CATEGORY: {}, INTENT: {}, ROUTE: {}, PERSONAL: [], QUESTION: []}
-
 
 
 def _atomic_write(path: str, content: str) -> None:
@@ -89,21 +87,22 @@ def load_profile(user_id: str) -> Dict:
 
 def save_profile(user_id: str, profile: Dict) -> None:
     """Serialize the dict back to markdown and write atomically."""
-    lines = ["# Profile", "", "## categories"]
+    lines = [f"# Profile", "", f"## {CATEGORY}"]
     for k, v in sorted(profile[CATEGORY].items(), key=lambda x: x[1], reverse=True):
         lines.append(f"- {k}: {v}")
-    lines += ["", "## intents"]
+    lines += ["", f"## {INTENT}"]
     for k, v in sorted(profile[INTENT].items(), key=lambda x: x[1], reverse=True):
         lines.append(f"- {k}: {v}")
-    lines += ["", "## routes"]
+    lines += ["", f"## {ROUTE}"]
     for k, v in sorted(profile[ROUTE].items(), key=lambda x: x[1], reverse=True):
         lines.append(f"- {k}: {v}")
-    lines += ["", "## personal"]
+    lines += ["", f"## {PERSONAL}"]
     for fact in profile[PERSONAL]:
         lines.append(f"- {fact}")
-    lines += ["", "## question"]
+    lines += ["", f"## {QUESTION}"]
     for q in profile[QUESTION]:
         lines.append(f"- {q}")
+
     _atomic_write(_path(user_id), "\n".join(lines) + "\n")
 
 
@@ -200,6 +199,7 @@ def _extract(question: str, answer: str) -> Extraction:
 
 def update_profile(user_id: str, question: str, answer: str, route: str) -> None:
     """Extract from this turn and persist. Linear, no special cases."""
+
     e = _extract(question, answer)
     p = load_profile(user_id)
 

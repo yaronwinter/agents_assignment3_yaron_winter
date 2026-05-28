@@ -7,6 +7,7 @@ STRUCTURED = "structured"
 UNSTRUCTURED = "unstructured"
 OUT_OF_SCOPE = "out_of_scope"
 PERSONAL = "personal"
+ROUTER = "router"
 
 """
 The router module, which routes the given question to the appropriate agent based on the question content.

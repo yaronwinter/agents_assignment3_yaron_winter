@@ -5,7 +5,11 @@ from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from agent.state import AgentState
-from agent.prompts import STRUCTURED_SYSTEM_PROMPT, UNSTRUCTURED_SYSTEM_PROMPT
+from agent.prompts import (
+    STRUCTURED_SYSTEM_PROMPT,
+    UNSTRUCTURED_SYSTEM_PROMPT,
+    PERSONAL_SYSTEM_PROMPT
+)
 from agent import struct_tools, unstruct_tools, display
 
 """
@@ -63,6 +67,15 @@ unstructured_react_agent = create_react_agent(
     prompt=UNSTRUCTURED_SYSTEM_PROMPT
 )
 
+"""
+The personal agent.
+"""
+personal_react_agent = create_react_agent(
+    model=llm,
+    tools=[],
+    prompt=PERSONAL_SYSTEM_PROMPT
+)
+
 CLI_MODE = os.environ.get("CLI_MODE") == "1"
 
 def get_profile_msg(state: AgentState) -> List[SystemMessage]:
@@ -111,3 +124,17 @@ def structured_react_node(state: AgentState) -> Dict[str, object]:
 def unstructured_react_node(state: AgentState) -> Dict[str, object]:
     """The unstructured React node, which invokes the ReAct agent to process the question."""
     return _run_react(unstructured_react_agent, state, "Unstructured")
+
+def personal_node(state: AgentState) -> Dict[str, object]:
+    """The personal node, which invokes the personal agent to answer questions about the user."""
+    profile = (state.get("profile") or "").strip()
+    if len(profile) == 0:
+        return {
+            "answer": (
+                "I don't have a profile for you yet — tell me about yourself, "
+
+            ),
+            "messages": "",
+            "iterations": state["iterations"] + 1
+        }
+    return _run_react(personal_react_agent, state, "Personal")

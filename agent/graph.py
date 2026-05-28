@@ -4,12 +4,22 @@ from typing import Dict
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.sqlite import SqliteSaver
 from agent.state import AgentState
-from agent.react_nodes import structured_react_node, unstructured_react_node
+from agent.react_nodes import (
+    structured_react_node,
+    unstructured_react_node,
+    personal_node
+)
 from agent import router
 
 MAX_ITERATIONS = 10
 
 CLI_MODE = os.environ.get("CLI_MODE") == "1"
+
+STRUCTURED_NODE = "structured_react"
+UNSTRUCTURED_NODE = "unstructured_react"
+PERSONAL_NODE = "personal"
+OUT_OF_SCOPE_NODE = "oos"
+ROUTER_NODE = router.ROUTER
 
 # How many of the most recent messages to surface to the router so it can
 # resolve follow-ups like "what about refunds?" against the prior turn.
@@ -60,23 +70,6 @@ def out_of_scope_node(state: AgentState) -> Dict[str, str]:
         )
     }
 
-
-def personal_node(state: AgentState) -> Dict[str, str]:
-    """Answer questions about the user themselves directly from the loaded profile.
-
-    No tool calls, no LLM call — we just return the profile contents. This keeps
-    "what do you remember about me?" deterministic and cheap.
-    """
-    profile = (state.get("profile") or "").strip()
-    if profile:
-        answer = f"Here's what I remember about you:\n\n{profile}"
-    else:
-        answer = (
-            "I don't have a profile for you yet — tell me about yourself, "
-            "or just keep asking dataset questions and I'll learn over time."
-        )
-    return {"answer": answer}
-
 def should_continue(state: AgentState) -> str:
     """A function that determines whether the agent should continue iterating or stop."""
     if state["iterations"] >= MAX_ITERATIONS:
@@ -92,27 +85,27 @@ The react node processes the question using the ReAct agent, and then determines
 The out-of-scope node returns a polite refusal message when the question is outside the scope of the dataset.
 """
 graph = StateGraph(AgentState)
-graph.add_node("router", route_question)
-graph.add_node("structured_react", structured_react_node)
-graph.add_node("unstructured_react", unstructured_react_node)
-graph.add_node("oos", out_of_scope_node)
-graph.add_node("personal", personal_node)
+graph.add_node(ROUTER_NODE, route_question)
+graph.add_node(STRUCTURED_NODE, structured_react_node)
+graph.add_node(UNSTRUCTURED_NODE, unstructured_react_node)
+graph.add_node(OUT_OF_SCOPE_NODE, out_of_scope_node)
+graph.add_node(PERSONAL_NODE, personal_node)
 
-graph.set_entry_point("router")
+graph.set_entry_point(ROUTER_NODE)
 
 graph.add_conditional_edges(
-    "router",
+    ROUTER_NODE,
     lambda s: s["route"],
     {
-        router.STRUCTURED: "structured_react",
-        router.UNSTRUCTURED: "unstructured_react",
-        router.OUT_OF_SCOPE: "oos",
-        router.PERSONAL: "personal",
+        router.STRUCTURED: STRUCTURED_NODE,
+        router.UNSTRUCTURED: UNSTRUCTURED_NODE,
+        router.OUT_OF_SCOPE: OUT_OF_SCOPE_NODE,
+        router.PERSONAL: PERSONAL_NODE,
     }
 )
 
 graph.add_conditional_edges(
-    "structured_react",
+    STRUCTURED_NODE,
      should_continue,
     {
         "end": END,
@@ -121,7 +114,7 @@ graph.add_conditional_edges(
 )
 
 graph.add_conditional_edges(
-    "unstructured_react",
+    UNSTRUCTURED_NODE,
     should_continue,
     {
         "end": END,
@@ -130,8 +123,8 @@ graph.add_conditional_edges(
 )
 
 
-graph.add_edge("oos", END)
-graph.add_edge("personal", END)
+graph.add_edge(OUT_OF_SCOPE_NODE, END)
+graph.add_edge(PERSONAL_NODE, END)
 
 
 # In CLI mode we own persistence, so attach a SQLite checkpointer scoped per
