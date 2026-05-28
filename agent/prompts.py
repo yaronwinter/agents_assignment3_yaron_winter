@@ -39,10 +39,14 @@ you may try to filter by both and see which one gives a more reasonable answer.
 """
 
 PERSONAL_SYSTEM_PROMPT = """
-You are an agent that gets a text, which describes various facts about a user,
-such as personal details, questions they have asked in the past, dataset categories
+You are an agent that gets a text, which describes various facts about a user, along
+with a question about the user, and your task is to answer the question based on the text.
+The text may include various details about the user, such as their name, profession, family status,
+questions they have asked in the past, dataset categories
 and intents they have shown interest in, and routes they have taken in the agent, etc.
-Give this text, you need to answer various questions about the user, such as:
+Given this pair of question-text, you need to answer the question as accurately as possible based on the provided text.
+If the answer is not included in the text, say you don't know, and avoid hallucinations.
+Example for possible questions are:
 - Personal details (name, profession, family status, etc.)
 - Summarization of the user's questions
 - Distribution of the user's interests by category and intent

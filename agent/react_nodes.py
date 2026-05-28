@@ -78,16 +78,6 @@ personal_react_agent = create_react_agent(
 
 CLI_MODE = os.environ.get("CLI_MODE") == "1"
 
-def get_profile_msg(state: AgentState) -> List[SystemMessage]:
-    """Get the user profile from state and format it as a system message."""
-    profile = (state.get("profile") or "").strip()
-    if not profile:
-        return []
-    
-    return [SystemMessage(
-        content=f"What you know about this user (use only if relevant):\n{profile}"
-    )]
-
 def _run_react(agent, state: AgentState, label: str) -> Dict[str, object]:
     """Invoke a ReAct sub-agent with accumulated history and return only the delta."""
     prior = state.get("messages") or []
@@ -96,7 +86,7 @@ def _run_react(agent, state: AgentState, label: str) -> Dict[str, object]:
     # Surface the per-user profile to the sub-agent as an extra system
     # message. The agent's built-in system prompt (dataset instructions)
     # remains in place; this is appended context, not a replacement.
-    result = agent.invoke({"messages": get_profile_msg(state) + list(prior) + [user_msg]})
+    result = agent.invoke({"messages": list(prior) + [user_msg]})
     all_messages = result["messages"]
 
     # Persist only the conversation thread (user turn + final answer). Tool
@@ -137,4 +127,14 @@ def personal_node(state: AgentState) -> Dict[str, object]:
             "messages": "",
             "iterations": state["iterations"] + 1
         }
-    return _run_react(personal_react_agent, state, "Personal")
+    user_msg = HumanMessage(content=f"{state["question"]}\n\n{profile}")
+    result = personal_react_agent.invoke({"messages": [user_msg]})
+    messages = result["messages"]
+    if CLI_MODE:
+        display.display_reasoning("Personal", messages)
+
+    return {
+        "answer": messages[-1].content,
+        "messages": messages,
+        "iterations": state["iterations"] + 1
+    }
