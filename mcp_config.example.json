@@ -1,0 +1,10 @@
+{
+  "//": "Drop this into an MCP host's config to register the BiText server.",
+  "//comment": "For Claude Desktop, merge the 'mcpServers' block into ~/.config/Claude/claude_desktop_config.json (Linux) or ~/Library/Application Support/Claude/claude_desktop_config.json (macOS), then restart the app.",
+  "mcpServers": {
+    "bitext-dataset": {
+      "command": "/home/yaron/miniconda3/envs/agentic_task/bin/python",
+      "args": ["/home/yaron/WorkEnv/Nebius/agents_assignment3_yaron_winter/mcp_server.py"]
+    }
+  }
+}

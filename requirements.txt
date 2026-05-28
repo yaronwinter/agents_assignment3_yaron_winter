@@ -12,3 +12,4 @@ openai
 pandas
 pydantic
 rich
+mcp[cli]
