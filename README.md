@@ -18,9 +18,15 @@ Assignment 3 repo of the "From AI model to AI Product" class
 ## MCP server (FastMCP)
 - Run the MCP Server: python mcp_client.py
 
+
 mcp> list                                   # re-list available tools
+
 mcp> help count_category                    # show a tool's input schema
+
 mcp> list_categories                        # call a no-arg tool
+
 mcp> count_category {"category": "REFUND"}  # call with JSON arguments
+
 mcp> count_category category=REFUND         # ...or key=value shorthand
+
 mcp> exit
