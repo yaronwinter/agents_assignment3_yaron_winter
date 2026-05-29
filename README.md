@@ -3,7 +3,8 @@ Assignment 3 repo of the "From AI model to AI Product" class
 
 # Repo Setup:
 - Unzip agents_assignment3_yaron_winter.zip in your desired folder
-- Create conda environment with python>=3.11: # conda create -n <env. name> python=3.11
+- Create conda environment with python>=3.11:
+  - # conda create -n <env. name> python=3.11
 - Install required packages:                  # pip install -r requirements.txt
 - Set the api key:                            # export NEBIUS_API_KEY=your api key
 
