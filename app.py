@@ -1,11 +1,10 @@
 import argparse
 import os
-import uuid
 os.environ["CLI_MODE"] = "1"
 
 from rich.console import Console
 from rich.panel import Panel
-from agent.graph import app
+from agent.graph import build_app
 from agent import profile as profile_store
 
 console = Console()
@@ -25,15 +24,25 @@ def main():
     and updated after each non-personal, non-OOS turn.
     """
     parser = argparse.ArgumentParser(description="BiText ReAct Agent")
-    parser.add_argument("--session", type=str, default=uuid.uuid4().hex[:12])
+    parser.add_argument("--session", type=str, default=None)
     parser.add_argument("--user", type=str, default="default_user")
     args = parser.parse_args()
 
-    config = {"configurable": {"thread_id": args.session}}
+    # Session memory is opt-in: only when the user provides --session do we
+    # attach the persistent checkpointer and a thread_id. Without it, the agent
+    # runs stateless (each turn is independent and nothing is persisted).
+    if args.session:
+        app = build_app(persist=True)
+        config = {"configurable": {"thread_id": args.session}}
+        session_label = args.session
+    else:
+        app = build_app(persist=False)
+        config = None
+        session_label = "stateless (no --session)"
 
     console.print(
         Panel.fit(
-            f"BiText ReAct Agent  (user: {args.user}, session: {args.session})",
+            f"BiText ReAct Agent  (user: {args.user}, session: {session_label})",
             style="bold blue"
         )
     )

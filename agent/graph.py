@@ -127,16 +127,25 @@ graph.add_edge(OUT_OF_SCOPE_NODE, END)
 graph.add_edge(PERSONAL_NODE, END)
 
 
-# In CLI mode we own persistence, so attach a SQLite checkpointer scoped per
-# --session thread_id. Under LangGraph Studio / langgraph-api the server
-# injects its own checkpointer, so we compile without one to avoid conflicts.
-if CLI_MODE:
-    _sessions_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".sessions")
-    os.makedirs(_sessions_dir, exist_ok=True)
-    _conn = sqlite3.connect(
-        os.path.join(_sessions_dir, "agent.sqlite"),
-        check_same_thread=False,
-    )
-    app = graph.compile(checkpointer=SqliteSaver(_conn))
-else:
-    app = graph.compile()
+def build_app(persist: bool = False):
+    """Compile the graph.
+
+    persist=True attaches a SQLite checkpointer scoped per thread_id
+    (.sessions/agent.sqlite), so a conversation can be restored across runs.
+    persist=False compiles without a checkpointer, so each invocation is
+    stateless (no session memory).
+    """
+    if persist:
+        _sessions_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".sessions")
+        os.makedirs(_sessions_dir, exist_ok=True)
+        _conn = sqlite3.connect(
+            os.path.join(_sessions_dir, "agent.sqlite"),
+            check_same_thread=False,
+        )
+        return graph.compile(checkpointer=SqliteSaver(_conn))
+    return graph.compile()
+
+
+# Module-level app for LangGraph Studio / langgraph-api, which injects its own
+# checkpointer. The CLI builds its own app via build_app() based on --session.
+app = graph.compile()
