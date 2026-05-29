@@ -5,9 +5,9 @@ Assignment 3 repo of the "From AI model to AI Product" class
 - Unzip agents_assignment3_yaron_winter.zip in your desired folder
 - cd to the repo root (the folder generated following the unzip)
 - Create conda environment with python>=3.11: # conda create -n <your conda env> python=3.11
+- Activate the conda environment:             # conda activate your conda env
 - Install required packages:                  # pip install -r requirements.txt
 - Set the api key:                            # export NEBIUS_API_KEY=your api key
-- Activate the conda environment:             # conda activate your conda env
 
 # Running the CLI application:
 - python app.py                               # no checkpoint memory, default user profile
